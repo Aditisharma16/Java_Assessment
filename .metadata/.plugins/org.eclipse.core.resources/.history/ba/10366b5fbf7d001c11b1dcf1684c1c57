@@ -1,0 +1,87 @@
+package singleton;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.function.Consumer;
+
+//how to create singleton object ie how to imp singleton pattern
+//Singleton : lazy vs eager
+//before java 1.4 the working of volatile is not guranteed ?
+
+//java 5: java memory model JMM=> volatile fix 
+//Lazy Initialization Holder Class is the pattern vs double checking
+
+
+enum MySigleton{
+	INSTANCE;
+	//
+}
+
+
+
+class Singleton implements Serializable, Cloneable{
+	
+	private static volatile Singleton singleton = null;
+
+	private Singleton() {
+		if(singleton!=null) {
+			throw new IllegalStateException();
+		}
+	}
+
+	// t1 t2
+	public static Singleton getSingleton() {
+		if (singleton == null) {
+			synchronized (Singleton.class) {
+				if (singleton == null) {
+					singleton = new Singleton();
+				}
+			}
+		}
+
+		return singleton;
+	}
+	
+	//if u have defined the readResolve method then java will not for for de-ser
+	//
+	
+	private Object readResolve() {
+		System.out.println("if u have defined the readResolve method then java will not for for de-ser");
+		return singleton;
+	}
+
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		return singleton;
+		//throw new CloneNotSupportedException();
+	}
+
+}
+
+public class DemoSingletonPattern {
+
+	public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException, CloneNotSupportedException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+		
+		MySigleton mySigleton=MySigleton.INSTANCE;
+		//MySigleton mySigleton2=MySigleton.INSTANCE;
+		
+		System.out.println(mySigleton.hashCode());
+		//System.out.println(mySigleton2.hashCode());
+		
+		
+		ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream("demo.txt"));
+		oos.writeObject(mySigleton);
+		
+		ObjectInputStream ois=new ObjectInputStream(new FileInputStream("demo.txt"));
+		MySigleton singleton2=(MySigleton) ois.readObject();
+		
+		System.out.println(singleton2.hashCode());
+	
